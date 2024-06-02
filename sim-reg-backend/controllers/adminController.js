@@ -1,4 +1,5 @@
-const { getAllRequests, updateRequestStatus, addRequest } = require('../models/request');
+const { getAllRequests, updateRequestStatus } = require('../models/request');
+const { createAdmin } = require('../models/admin');
 
 //Mendapatkan semua permintaan pendaftar
 const getRequest = async (req, res) => {
@@ -24,7 +25,21 @@ const processRequest = async (req, res) => {
     }
 };
 
+//Membuat akun admin
+const registerAdmin = async (req, res) => {
+    const { username, email, phonenumber, password } = req.body;
+
+    try {
+        const newAdmin = await createAdmin(username, email, phonenumber, password);
+        res.status(201).json({ message: 'Admin registered successfully', admin: newAdmin });
+    } catch (error) {
+        console.error('Error registering admin:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+
 module.exports = {
     getRequest,
-    processRequest
+    processRequest,
+    registerAdmin
 }

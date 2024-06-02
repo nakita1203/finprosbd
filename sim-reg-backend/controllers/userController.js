@@ -1,6 +1,9 @@
-const { createUser, findUserByUsername, saveDocumentNumbers } = require('../models/user');
+const { createUser, saveDocumentLinks } = require('../models/user');
 const { addRequest } = require('../models/request');
+const { uploadFileToGoogleDrive } = require('../services/googleDriveService.js')
 const bcrypt = require('bcryptjs');
+const { pool } = require('../config/db.config.js');
+
 
 async function createUserController(req, res) {
     const { NIK, username, email, phoneNumber, password, address_id, name, date_of_birth, place_of_birth, gender } = req.body;
@@ -29,33 +32,40 @@ async function loginUserController(req, res) {
     const { username, password } = req.body;
 
     try {
-        const user = await findUserByUsername(username);
-        if(!user){
-            return res.status(401).json({ error: 'Invalid username or password' });
+        // Cek di tabel admin
+        let query = 'SELECT * FROM Admin WHERE username = $1';
+        let result = await pool.query(query, [username]);
+
+        if (result.rows.length > 0) {
+            const admin = result.rows[0];
+            const validPassword = await bcrypt.compare(password, admin.password);
+
+            if (validPassword) {
+                return res.status(200).json({ message: 'Admin login successful', role: 'admin' });
+            }
         }
 
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if(!isPasswordValid) {
-            return res.status(401).json({ error: 'Invalid username or password' });
+        // Cek di tabel account
+        query = 'SELECT * FROM Account WHERE username = $1';
+        result = await pool.query(query, [username]);
+
+        if (result.rows.length > 0) {
+            const user = result.rows[0];
+            const validPassword = await bcrypt.compare(password, user.password);
+
+            if (validPassword) {
+                return res.status(200).json({ message: 'User login successful', role: 'user' });
+            }
         }
 
-        res.status(200).json({ message: 'Login succesful' });
-    } catch (error) {
-        
-    }
-}
+        // Jika tidak ditemukan
+        return res.status(401).json({ error: 'Invalid username or password' });
 
-const indicateFileUploaded = async (req, res) => {
-    const { account_id, ktp_number, kk_number } = req.body;
-
-    try {
-        const document = await saveDocumentNumbers(account_id, ktp_number, kk_number);
-        res.status(200).json({ message: 'Document uploaded successfully', document });
     } catch (error) {
-        console.error('Error indicating file upload:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        console.error('Error during login:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
-}
+};
 
 const createNewRequest = async (req, res) => {
     const { nik, polres_id, document_id, schedule } = req.body;
@@ -69,9 +79,27 @@ const createNewRequest = async (req, res) => {
     }
 };
 
+const indicateFileUploaded = async (req, res) => {
+    const { account_id } = req.body;
+
+    try {
+        const ktp_link = await uploadFileToGoogleDrive(req.files.ktp[0]);
+        const kk_link = await uploadFileToGoogleDrive(req.files.kk[0]);
+        
+        await pool.query(
+        'INSERT INTO Document (account_id, ktp_link, kk_link) VALUES ($1, $2, $3)',
+        [account_id, ktp_link, kk_link]
+        );
+        res.status(200).json({ message: 'Document uploaded successfully' });
+    } catch (error) {
+        console.error('Error saving document numbers:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+
 module.exports = { 
     createUserController, 
     loginUserController,
-    indicateFileUploaded,
-    createNewRequest
+    createNewRequest,
+    indicateFileUploaded
 };
