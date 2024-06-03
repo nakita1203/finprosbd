@@ -1,11 +1,11 @@
 const { pool } = require('../config/db.config.js');
 const bcrypt = require('bcryptjs');
-const { uploadFileToGoogleDrive } = require('../services/googleDriveService.js');
 
 pool.connect().then(() => {
     console.log("Connected to PortgreSQL Database 🛢️");
 })
 
+// Register User
 const createUser = async (user) => {
     const hashedPassword = await bcrypt.hash(user.password, 10);
 
@@ -18,16 +18,8 @@ const createUser = async (user) => {
 
     await pool.query(
         'INSERT INTO Person (NIK, account_id, address_id, name, date_of_birth, place_of_birth, gender) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-        [user.NIK, accountId, user.address_id, user.name, user.date_of_birth, user.place_of_birth, user.gender]
+        [user.NIK, account_id, user.address_id, user.name, user.date_of_birth, user.place_of_birth, user.gender]
     );
-};
-
-const findUserByUsername = async (username) => {
-    const result = await pool.query(
-        'SELECT * FROM Account WHERE username = $1',
-        [username]
-    );
-    return result.rows[0];
 };
 
 // const saveDocumentLinks = async (account_id, ktpLink, kkLink) => {
@@ -42,25 +34,22 @@ const findUserByUsername = async (username) => {
 //     }
 // };
 
-const saveDocumentLinks = async (req, res) => {
-    const { account_id, ktp_link , kk_link } = req.body;
+// Gausah diapa"in dulu frontendnya soalnya dia blm jadi
+// const saveDocumentLinks = async (req, res) => {
+//     const { account_id, ktp_link , kk_link } = req.body;
 
-    try {
-        const ktp_link = await uploadFileToGoogleDrive(req.files.ktp[0]);
-        const kk_link = await uploadFileToGoogleDrive(req.files.kk[0]);
-        await pool.query(
-        'INSERT INTO Document (account_id, ktp_link, kk_link) VALUES ($1, $2, $3, $4, $5)',
-        [account_id, ktp_link, kk_link]
-        );
-        res.status(200).json({ message: 'Document uploaded successfully' });
-    } catch (error) {
-        console.error('Error saving document numbers:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-};
+//     try {
+//         const ktp_link = await uploadFileToGoogleDrive(req.files.ktp[0]);
+//         const kk_link = await uploadFileToGoogleDrive(req.files.kk[0]);
+//         await pool.query(
+//         'INSERT INTO Document (account_id, ktp_link, kk_link) VALUES ($1, $2, $3, $4, $5)',
+//         [account_id, ktp_link, kk_link]
+//         );
+//         res.status(200).json({ message: 'Document uploaded successfully' });
+//     } catch (error) {
+//         console.error('Error saving document numbers:', error);
+//         res.status(500).json({ error: 'Internal Server Error' });
+//     }
+// };
 
-module.exports = { 
-    createUser, 
-    findUserByUsername,
-    saveDocumentLinks
-};
+module.exports = createUser;

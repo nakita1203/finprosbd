@@ -1,10 +1,10 @@
-const { createUser, saveDocumentLinks } = require('../models/user');
+const { createUser } = require('../models/user');
 const { addRequest } = require('../models/request');
-const { uploadFileToGoogleDrive } = require('../services/googleDriveService.js')
 const bcrypt = require('bcryptjs');
 const { pool } = require('../config/db.config.js');
 
 
+// Membuat user untuk register
 async function createUserController(req, res) {
     const { NIK, username, email, phoneNumber, password, address_id, name, date_of_birth, place_of_birth, gender } = req.body;
 
@@ -28,6 +28,7 @@ async function createUserController(req, res) {
     }
 }
 
+// Login handling dan membedakan apakah yang login User atau Admin
 async function loginUserController(req, res) {
     const { username, password } = req.body;
 
@@ -67,6 +68,7 @@ async function loginUserController(req, res) {
     }
 };
 
+// Buat request baru
 const createNewRequest = async (req, res) => {
     const { nik, polres_id, document_id, schedule } = req.body;
 
@@ -79,27 +81,26 @@ const createNewRequest = async (req, res) => {
     }
 };
 
-const indicateFileUploaded = async (req, res) => {
-    const { account_id } = req.body;
+// const indicateFileUploaded = async (req, res) => {
+//     const { account_id } = req.body;
 
-    try {
-        const ktp_link = await uploadFileToGoogleDrive(req.files.ktp[0]);
-        const kk_link = await uploadFileToGoogleDrive(req.files.kk[0]);
+//     try {
+//         const ktp_link = await uploadFileToGoogleDrive(req.files.ktp[0]);
+//         const kk_link = await uploadFileToGoogleDrive(req.files.kk[0]);
         
-        await pool.query(
-        'INSERT INTO Document (account_id, ktp_link, kk_link) VALUES ($1, $2, $3)',
-        [account_id, ktp_link, kk_link]
-        );
-        res.status(200).json({ message: 'Document uploaded successfully' });
-    } catch (error) {
-        console.error('Error saving document numbers:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-};
+//         await pool.query(
+//         'INSERT INTO Document (account_id, ktp_link, kk_link) VALUES ($1, $2, $3)',
+//         [account_id, ktp_link, kk_link]
+//         );
+//         res.status(200).json({ message: 'Document uploaded successfully' });
+//     } catch (error) {
+//         console.error('Error saving document numbers:', error);
+//         res.status(500).json({ error: 'Internal Server Error' });
+//     }
+// };
 
 module.exports = { 
     createUserController, 
     loginUserController,
-    createNewRequest,
-    indicateFileUploaded
+    createNewRequest
 };
