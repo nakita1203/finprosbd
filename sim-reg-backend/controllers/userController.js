@@ -81,24 +81,6 @@ const createNewRequest = async (req, res) => {
     }
 };
 
-// const indicateFileUploaded = async (req, res) => {
-//     const { account_id } = req.body;
-
-//     try {
-//         const ktp_link = await uploadFileToGoogleDrive(req.files.ktp[0]);
-//         const kk_link = await uploadFileToGoogleDrive(req.files.kk[0]);
-        
-//         await pool.query(
-//         'INSERT INTO Document (account_id, ktp_link, kk_link) VALUES ($1, $2, $3)',
-//         [account_id, ktp_link, kk_link]
-//         );
-//         res.status(200).json({ message: 'Document uploaded successfully' });
-//     } catch (error) {
-//         console.error('Error saving document numbers:', error);
-//         res.status(500).json({ error: 'Internal Server Error' });
-//     }
-// };
-
 module.exports = { 
     createUserController, 
     loginUserController,
