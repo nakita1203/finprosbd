@@ -1,4 +1,4 @@
-const { createUser } = require('../models/user');
+const { createUser } = require('../models/user.js');
 const { addRequest } = require('../models/request');
 const bcrypt = require('bcryptjs');
 const { pool } = require('../config/db.config.js');
@@ -70,10 +70,10 @@ async function loginUserController(req, res) {
 
 // Buat request baru
 const createNewRequest = async (req, res) => {
-    const { nik, polres_id, document_id, schedule } = req.body;
+    const { nik, polres_id, document_id } = req.body;
 
     try {
-        const newReq = await addRequest(nik, polres_id, document_id, schedule);
+        const newReq = await addRequest(nik, polres_id, document_id);
         res.status(201).json(newReq);
     } catch (error) {
         console.error('Error creating new request:', error);
