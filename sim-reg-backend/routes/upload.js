@@ -3,6 +3,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const { google } = require('googleapis');
+const { pool } = require('../config/db.config.js');
 
 const uploadRouter = express.Router();
 const upload = multer();
@@ -33,18 +34,23 @@ const uploadFile = async (fileObject) => {
         fields: "id, name"
     })
     console.log(`Uploaded file ${data.name} ${data.id}`);
+    return data.id;
 }
 
-uploadRouter.post('/upload', upload.any(), async (req, res) => {
+uploadRouter.post('/upload', upload.fields([{ name: 'ktp' }, { name: 'kk' }]), async (req, res) => {
     try {
-        const { body, files } = req;
+        const { account_id } = req.body;
+        const files = req.files;
 
-        for(let f=0; f<files.length; f+=1){
-            await uploadFile(files[f]);
-        }
+        const ktp_id = await uploadFile(files.ktp[0]);
+        const kk_id = await uploadFile(files.kk[0]);
 
-        console.log(body);
-        res.status(200).send("Form Submitted");
+        const [result] = await pool.query(
+            'INSERT INTO Document (account_id, ktp_id, kk_id) VALUES ($1, $2, $3)',
+            [account_id, ktp_id, kk_id]
+        );
+
+        res.status(200).send("Files are uploaded");
     } catch (error) {
         res.send(error.message);
     }

@@ -14,7 +14,7 @@ const createUser = async (user) => {
         [user.username, user.email, user.phoneNumber, hashedPassword]
     );
     
-    const accountId = accountResult.rows[0].account_id;
+    const account_id = accountResult.rows[0].account_id;
 
     await pool.query(
         'INSERT INTO Person (NIK, account_id, address_id, name, date_of_birth, place_of_birth, gender) VALUES ($1, $2, $3, $4, $5, $6, $7)',
