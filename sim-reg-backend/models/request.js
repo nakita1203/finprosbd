@@ -3,7 +3,7 @@ const { pool } = require('../config/db.config.js');
 //Mendapatkan semua permintaan pendaftar (untuk admin)
 const getAllRequests = async () => {
     const result = await pool.query(`
-    SELECT r.*, p.name, p.date_of_birth, p,place_of_birth, d.ktp_file_id, d.kk_file_id
+    SELECT r.*, p.name, p.date_of_birth, p,place_of_birth, d.ktp_id, d.kk_id
     FROM Request r
     JOIN Person p ON r.nik = p.nik
     JOIN Document d ON r.document_id = d.document_id
@@ -38,8 +38,22 @@ const addRequest = async (nik, polres_id, document_id) => {
     }
 };
 
+// Menghapus request
+const deleteRequest = async (request_id) => {
+    try {
+        const result = await pool.query(
+            'DELETE FROM request WHERE request_id = $1',
+            [request_id]
+        );
+    } catch (error) {
+        console.error('Error deleting request:', error);
+        throw error;
+    }
+}
+
 module.exports = {
     getAllRequests,
     updateRequestStatus,
-    addRequest
+    addRequest,
+    deleteRequest
 }

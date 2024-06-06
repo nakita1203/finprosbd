@@ -1,5 +1,5 @@
 const { createUser } = require('../models/user.js');
-const { addRequest } = require('../models/request');
+const { addRequest, deleteRequest } = require('../models/request');
 const bcrypt = require('bcryptjs');
 const { pool } = require('../config/db.config.js');
 
@@ -81,8 +81,21 @@ const createNewRequest = async (req, res) => {
     }
 };
 
+const deleteUserRequest = async (req, res) => {
+    const { request_id } = req.body;
+
+    try {
+        const deletedReq = await deleteRequest(request_id);
+        res.status(201).json(deletedReq);
+    } catch (error) {
+        console.error('Error deleting your request:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
 module.exports = { 
     createUserController, 
     loginUserController,
-    createNewRequest
+    createNewRequest,
+    deleteUserRequest
 };
